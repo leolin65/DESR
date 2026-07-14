@@ -109,13 +109,15 @@ mvtec_anomaly_detection/
 
 ## Released checkpoints
 
-Large checkpoint files are not included in this GitHub repository. The released DESR checkpoint files can be downloaded from Google Drive:
+Large checkpoint files are not included in this GitHub repository. The released DESR checkpoint files can be downloaded from the same Google Drive folder:
 
 ```text
 https://drive.google.com/drive/folders/1ityUyN2aPki17Kz30epoOR6YMJumJAOq?usp=sharing
 ```
 
-For reproducing the reported VisA → MVTec result, download the checkpoint files and place them under:
+The Google Drive folder provides the released source checkpoints used by the paper-aligned commands below.
+
+For reproducing the reported **VisA → MVTec** result, download the VisA-source checkpoint files and place them under:
 
 ```text
 ckpt/visa_desr/
@@ -124,9 +126,7 @@ ckpt/visa_desr/
 └── image_adapter_6.pth
 ```
 
-The main evaluation command uses `--eval_best_source`, which loads `image_adapter_best_source.pth`. The explicit epoch-6 command uses `image_adapter_6.pth`.
-
-If you evaluate MVTec → VisA, place the corresponding MVTec-source checkpoint files under:
+For reproducing the reported **MVTec → VisA** reverse-transfer diagnostic, download the MVTec-source checkpoint files from the same Google Drive folder and place them under:
 
 ```text
 ckpt/mvtec_desr/
@@ -134,6 +134,8 @@ ckpt/mvtec_desr/
 ├── image_adapter_best_source.pth
 └── image_adapter_6.pth
 ```
+
+The main evaluation commands use `--eval_best_source`, which loads `image_adapter_best_source.pth`. The explicit epoch-6 commands use `image_adapter_6.pth`.
 
 Recommended GitHub practice: keep `ckpt/` and `*.pth` ignored in `.gitignore`, and provide checkpoint files through Google Drive, Hugging Face, or GitHub Releases.
 
@@ -205,6 +207,63 @@ ckpt/visa_desr/text_adapter.pth
 ckpt/visa_desr/image_adapter_6.pth
 ckpt/visa_desr/image_adapter_best_source.pth
 ckpt/visa_desr/train.log
+```
+
+
+### Train MVTec source checkpoint
+
+This trains the short MVTec source checkpoint folder `ckpt/mvtec_desr`, which is used for the paper-aligned MVTec → VisA reverse-transfer diagnostic.
+
+```bash
+python train.py \
+  --dataset MVTec \
+  --training_mode full_shot \
+  --batch_size 3 \
+  --text_batch_size 16 \
+  --save_path ckpt/mvtec_desr \
+  --model_name ViT-L-14-336 \
+  --img_size 518 \
+  --surgery_until_layer 20 \
+  --text_epoch 5 \
+  --image_epoch 6 \
+  --text_lr 0.00001 \
+  --image_lr 0.0005 \
+  --text_norm_weight 0.1 \
+  --text_anchor_sep_weight 0.0 \
+  --text_anchor_sep_max_cos 0.2 \
+  --text_anchor_preserve_weight 0.0 \
+  --text_adapt_weight 0.1 \
+  --image_adapt_weight 0.1 \
+  --text_adapt_until 3 \
+  --image_adapt_until 6 \
+  --use_dinov3 \
+  --dino_model_name facebook/dinov3-vith16plus-pretrain-lvd1689m \
+  --dino_fusion_alpha 0.05 \
+  --use_score_calibrator \
+  --score_calib_alpha_min 0.85 \
+  --score_calib_alpha_max 1.0 \
+  --image_calib_loss_weight 0.03 \
+  --score_rank_loss_weight 0.01 \
+  --score_rank_margin 0.2 \
+  --topk_ratio 0.01 \
+  --use_hard_synth_anomaly \
+  --synth_prob 0.3 \
+  --synth_small_defect_prob 0.3 \
+  --synth_low_contrast_prob 0.3 \
+  --synth_scratch_prob 0.0 \
+  --synth_blur_prob 0.0 \
+  --source_val_ratio 0.1 \
+  --select_checkpoint_by source_s4 \
+  --save_best_source_checkpoint
+```
+
+Important outputs:
+
+```text
+ckpt/mvtec_desr/text_adapter.pth
+ckpt/mvtec_desr/image_adapter_6.pth
+ckpt/mvtec_desr/image_adapter_best_source.pth
+ckpt/mvtec_desr/train.log
 ```
 
 ### Optional: train a CLIP-only / no-DINO checkpoint
@@ -301,7 +360,7 @@ python test.py \
 
 ### MVTec → VisA transfer
 
-For the reverse direction using the MVTec source checkpoint:
+For the reverse direction using the MVTec source checkpoint, use the paper/log-aligned V29 setting. This setting keeps DINOv3 enabled, uses `topk_ratio=0.01`, and applies the fixed class-conditioned fusion policy `visa_reverse_v29`.
 
 ```bash
 python test.py \
@@ -318,8 +377,15 @@ python test.py \
   --fb_bg_suppression_beta 0.2 \
   --fb_bg_suppression_mode normal_z \
   --image_fusion_alpha 0.90 \
-  --topk_ratio 0.01
+  --topk_ratio 0.01 \
+  --class_alpha_policy visa_reverse_v29
 ```
+
+The expected VisA average row for the released/source-best MVTec checkpoint is approximately:
+
+| Source → Target | Pixel-AUC | Pixel-AP | PRO | F1 | IoU | Image-AUC | Image-AP | S4 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| MVTec → VisA | 95.8 | 27.7 | 86.4 | 25.3 | 16.3 | 81.2 | 85.6 | 87.2 |
 
 ## Cross-dataset evaluation
 

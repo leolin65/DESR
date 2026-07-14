@@ -36,7 +36,7 @@ DESR/
 The code was developed with PyTorch and CUDA GPUs. A typical environment is:
 
 ```bash
-conda create -n desr python=3.9 -y
+conda create -n desr python=3.10 -y
 conda activate desr
 
 # Install PyTorch following your CUDA version from the official PyTorch website.
@@ -147,15 +147,6 @@ ckpt/mvtec_desr     # MVTec source checkpoint, used for MVTec -> VisA
 ckpt/visa_clip      # optional CLIP-only / no-DINO checkpoint
 ```
 
-If you already have the old checkpoint folder, simply rename or copy it:
-
-```bash
-# Linux / macOS
-mv ckpt/VisA_V28_safeScoreCalib2_dinov3 ckpt/visa_desr
-
-# Windows CMD
-ren ckpt\VisA_V28_safeScoreCalib2_dinov3 visa_desr
-```
 
 All commands below use the shorter `ckpt/visa_desr` and `ckpt/mvtec_desr` paths.
 
@@ -338,9 +329,6 @@ Example commands for evaluating a VisA source checkpoint on additional target da
 # BTAD
 python test.py --dataset BTAD --shot 4 --batch_size 2 --save_path ckpt/visa_desr --model_name ViT-L-14-336 --img_size 518 --eval_best_source --use_dinov3 --dino_model_name facebook/dinov3-vith16plus-pretrain-lvd1689m --dino_fusion_alpha 0.05 --fb_bg_suppression_beta 0.2 --fb_bg_suppression_mode normal_z --image_fusion_alpha 0.80 --topk_ratio 0.006
 
-# MPDD
-python test.py --dataset MPDD --shot 4 --batch_size 2 --save_path ckpt/visa_desr --model_name ViT-L-14-336 --img_size 518 --eval_best_source --use_dinov3 --dino_model_name facebook/dinov3-vith16plus-pretrain-lvd1689m --dino_fusion_alpha 0.05 --fb_bg_suppression_beta 0.2 --fb_bg_suppression_mode normal_z --image_fusion_alpha 0.80 --topk_ratio 0.006
-
 # DTD
 python test.py --dataset DTD --shot 4 --batch_size 2 --save_path ckpt/visa_desr --model_name ViT-L-14-336 --img_size 518 --eval_best_source --use_dinov3 --dino_model_name facebook/dinov3-vith16plus-pretrain-lvd1689m --dino_fusion_alpha 0.05 --fb_bg_suppression_beta 0.2 --fb_bg_suppression_mode normal_z --image_fusion_alpha 0.80 --topk_ratio 0.006
 
@@ -446,7 +434,7 @@ If you use this repository, please cite the paper:
 @inproceedings{lin2026desr,
   title     = {DESR: DINO-Enhanced Score Reliability for Cross-Dataset Industrial Anomaly Transfer},
   author    = {Lin, Shih-Chih and Hwang, Jenq-Neng and Lai, Shang-Hong},
-  booktitle = {Proceedings of the ICMR Workshop},
+  booktitle = {Proceedings of the ECML-PKDD},
   year      = {2026}
 }
 ```
